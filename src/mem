@@ -1,0 +1,1265 @@
+import React, { useState, useEffect } from "react";
+import {
+  Dimensions,
+  Text,
+  StyleSheet,
+  TextInput,
+  Platform,
+  View,
+} from "react-native";
+import { Block } from "smg-react-native-components";
+import ImagePicker from "react-native-image-crop-picker";
+import ImageMarker, { Position } from "react-native-image-marker";
+import ImageResizer from "react-native-image-resizer";
+import Icon from "react-native-vector-icons/Feather";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { Checkbox } from "react-native-ui-lib";
+import { connect } from "react-redux";
+import Image from "react-native-fast-image";
+import { bindActionCreators, compose } from "redux";
+
+import { colors, styles as sharedStyles } from "../../theme";
+import moment from "moment";
+import { sharedActions } from "../../state/shared";
+import Lightbox from "../../components/Lightbox/Lightbox";
+import { ScrollView } from "react-native-gesture-handler";
+import Footer from "../../components/Footer";
+import { mainActions } from "../../state/main";
+import { RELEASE_ENDPOINT } from "../../constants/url";
+import SMGGallery from "../../components/SMGGallery/SMGGallery";
+import parseErrorStack from "react-native/Libraries/Core/Devtools/parseErrorStack";
+import { showMessage } from "react-native-flash-message";
+import { login } from "../../services";
+import { formatCurrency } from "../../utils/transforms";
+
+const { width, height } = Dimensions.get("window");
+const widthIMG = width - 100;
+
+const BaoCaoHoanThanh = ({
+  navigation,
+  bao_cao,
+  isFetching,
+  getBaoCao,
+  fetchDone,
+  fetching,
+  taoBaoCaoHoanThanh,
+}) => {
+  const [showActionSheet, setShowAS] = useState(false);
+  const [so_cong_nhan, setCN] = useState("0");
+  const [so_thoi_vu, setTV] = useState("0");
+  const [ghi_chu, setGhiChu] = useState("");
+  const [anh, setAnhs] = useState([]);
+  const [laiXeBocHang, setLXBH] = useState([]);
+  //PHU PHI
+  const [pp_pt, setPPPt] = useState("0");
+  const [pp_ac, setPPAc] = useState("0");
+  const [pp_cx, setPPcx] = useState("0");
+  const [pp_tlx, setPPTlx] = useState("0");
+  const [pp_cpk, setPPCpk] = useState("0");
+  const [pp_ghi_chu, setPPGhiChu] = useState("");
+  const [pp_ghi_chu_cx, setPPGhiChuCX] = useState("");
+  const [pp_ghi_chu_tlx, setPPGhiChuTLX] = useState("");
+
+  useEffect(() => {
+    const khach_hang_id = navigation.getParam("khach_hang_id");
+    const don_dieu_phoi_id = navigation.getParam("don_dieu_phoi_id");
+
+    const dsXe = navigation.getParam("xe");
+    if (dsXe.length)
+      setLXBH(
+        dsXe.map((el) => ({
+          ...el,
+          boc_hang: false,
+        }))
+      );
+    getBaoCao({ khach_hang_id, don_dieu_phoi_id });
+  }, []);
+
+  useEffect(() => {
+    console.log(bao_cao);
+    if (bao_cao) {
+      const {
+        so_nguoi,
+        ghi_chu,
+        anh: mangAnh,
+        lai_xe_boc_hang,
+        phu_phi,
+      } = bao_cao;
+      if (so_nguoi) {
+        // setSoNguoi(so_nguoi + "");
+        if (so_nguoi.chinh_thuc) setCN(so_nguoi.chinh_thuc + "");
+        if (so_nguoi.thoi_vu) setTV(so_nguoi.thoi_vu + "");
+      }
+      if (ghi_chu) {
+        setGhiChu(ghi_chu);
+      }
+      if (mangAnh.length) {
+        console.log(mangAnh);
+
+        setAnhs(
+          mangAnh.map((el) => ({
+            uri: `${RELEASE_ENDPOINT}/${el}`,
+          }))
+        );
+      }
+      if (lai_xe_boc_hang) {
+        const dsXe = navigation.getParam("xe");
+        if (dsXe.length) {
+          const newDsXe = dsXe.map((e) => ({
+            ...e,
+            boc_hang: lai_xe_boc_hang.includes(e.id),
+          }));
+          setLXBH(newDsXe);
+        }
+      }
+      if (phu_phi) {
+        if (phu_phi.an_ca) setPPAc(`${phu_phi.an_ca}`);
+        if (phu_phi.can_xe) setPPcx(`${phu_phi.can_xe}`);
+        if (phu_phi.chi_phi_khac) setPPCpk(`${phu_phi.chi_phi_khac}`);
+        if (phu_phi.ghi_chu) setPPGhiChu(`${phu_phi.ghi_chu}`);
+        if (phu_phi.ghi_chu_phi_can_xe)
+          setPPGhiChuCX(`${phu_phi.ghi_chu_phi_can_xe}`);
+        if (phu_phi.ghi_chu_thue_lai_xe)
+          setPPGhiChuTLX(`${phu_phi.ghi_chu_thue_lai_xe}`);
+        if (phu_phi.phuong_tien) setPPPt(`${phu_phi.phuong_tien}`);
+        if (phu_phi.thue_lai_xe) setPPTlx(`${phu_phi.thue_lai_xe}`);
+      }
+    } else {
+      setCN("0");
+      setTV("0");
+      setPPAc("0");
+      setPPcx("0");
+      setPPCpk("0");
+      setPPPt("0");
+      setPPTlx("0");
+      setGhiChu("");
+      setPPGhiChu("");
+      setPPGhiChuCX("");
+      setPPGhiChuTLX("");
+      setAnhs([]);
+    }
+  }, [bao_cao]);
+
+  const onSaveTo = (key, images) => {
+    switch (key) {
+      case "anh":
+        setAnhs([...anh, ...images]);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const pickOption = async (key, storeName) => {
+    fetching();
+    const text = moment().format("HH:mm:ss DD/MM/YYYY");
+    switch (key) {
+      case 1:
+        try {
+          const { path: src } = await ImagePicker.openCamera({
+            width,
+            height,
+            cropping: false,
+          });
+          const path = await ImageMarker.markText({
+            src,
+            text,
+            color: colors.PRIMARY,
+            fontName: "Arial-BoldItalicMT",
+            position: Position.topLeft,
+            scale: 1,
+            quality: 80,
+            fontSize: 60,
+          });
+          const uri = Platform.OS === "android" ? "file://" + path : path;
+          const compressedImg = await ImageResizer.createResizedImage(
+            uri,
+            1000,
+            1000,
+            "JPEG",
+            80
+          );
+          onSaveTo(storeName, [compressedImg]);
+        } catch (error) {
+          console.log(error);
+        }
+        break;
+      case 2:
+        try {
+          const images = await ImagePicker.openPicker({
+            multiple: true,
+          });
+          const promises = images.map(async (image) => {
+            const { path: src } = image;
+            const path = await ImageMarker.markText({
+              src,
+              text,
+              color: colors.PRIMARY,
+              fontName: "Arial-BoldItalicMT",
+              position: Position.topLeft,
+              scale: 1,
+              quality: 80,
+              fontSize: 60,
+            });
+            const uri = Platform.OS === "android" ? "file://" + path : path;
+            const compressedImg = await ImageResizer.createResizedImage(
+              uri,
+              1000,
+              1000,
+              "JPEG",
+              80
+            );
+            return compressedImg;
+          });
+
+          const resultImages = await Promise.all(promises);
+          onSaveTo(storeName, resultImages);
+        } catch (error) {
+          console.log(error);
+        }
+        break;
+      default:
+        break;
+    }
+    switch (storeName) {
+      case "anh":
+        setShowAS(false);
+        break;
+      default:
+        break;
+    }
+    fetchDone();
+  };
+
+  const xoaAnh = (index, storeName) => () => {
+    switch (storeName) {
+      case "anh":
+        console.log(index);
+        anh.splice(index, 1);
+        setAnhs([...anh]);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const hienThiAnhXacNhan = (storeName) => (item, index) => {
+    return (
+      <Block
+        style={[
+          {
+            marginBottom: 10,
+            marginHorizontal: 5,
+          },
+        ]}
+        key={index}
+      >
+        <Lightbox imageSource={`${item.uri}`}>
+          <Image
+            resizeMode="cover"
+            style={{
+              width: widthIMG / 4,
+              height: widthIMG / 4,
+              borderRadius: 5,
+            }}
+            source={{ uri: `${item.uri}` }}
+          />
+          <Block
+            onPress={xoaAnh(index, storeName)}
+            style={{
+              position: "absolute",
+              top: 5,
+              right: 5,
+            }}
+          >
+            <Icon name="x-circle" size={20} color={colors.ERROR} />
+          </Block>
+        </Lightbox>
+      </Block>
+    );
+  };
+
+  const handleSubmit = () => {
+    if (
+      validate(pp_pt, "phương tiện") &&
+      validate(pp_ac, "ăn ca") &&
+      validate(pp_cx, "phí cân xe") &&
+      validate(pp_tlx, "thuê lái xe") &&
+      validate(pp_cpk, "chi phí khác")
+    ) {
+      if (parseInt(pp_cpk) !== 0 && !pp_ghi_chu) {
+        return showMessage({
+          message: "Vui lòng nhập ghi chú cho chi phí khác!",
+          type: "danger",
+          icon: { icon: "danger", position: "left" },
+        });
+      }
+      const khach_hang_id = navigation.getParam("khach_hang_id");
+      const don_dieu_phoi_id = navigation.getParam("don_dieu_phoi_id");
+      taoBaoCaoHoanThanh({
+        khach_hang_id,
+        don_dieu_phoi_id,
+        so_nguoi: {
+          chinh_thuc: so_cong_nhan ? +so_cong_nhan : 0,
+          thoi_vu: so_thoi_vu ? +so_thoi_vu : 0,
+        },
+        ghi_chu,
+        lai_xe_boc_hang: laiXeBocHang.filter((el) => el.boc_hang),
+        anh,
+        phu_phi: {
+          phuong_tien: converToInt(pp_pt),
+          an_ca: converToInt(pp_ac),
+          can_xe: converToInt(pp_cx),
+          thue_lai_xe: converToInt(pp_tlx),
+          chi_phi_khac: converToInt(pp_cpk),
+          ghi_chu: pp_ghi_chu,
+          ghi_chu_phi_can_xe: pp_ghi_chu_cx,
+          ghi_chu_thue_lai_xe: pp_ghi_chu_tlx,
+        },
+      });
+    }
+  };
+
+  const validate = (value, key) => {
+    try {
+      const pattern = /^\d+$/;
+      const isValid = pattern.test(value.trim());
+      if (!isValid) {
+        showMessage({
+          message: `Số lượng ${key} không hợp lệ`,
+          type: "danger",
+          icon: { icon: "danger", position: "left" },
+        });
+      }
+      return isValid;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const chonLaiXeBH = (id) => () => {
+    laiXeBocHang[id].boc_hang = !laiXeBocHang[id].boc_hang;
+    setLXBH([...laiXeBocHang]);
+  };
+
+  const converToInt = (val) => {
+    try {
+      return parseInt(val);
+    } catch (error) {
+      return 0;
+    }
+  };
+
+  return (
+    <Block flex={1} style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Block style={[styles.cate, { marginTop: 5 }]}>
+          <Text style={styles.txtLabel}>Số công nhân</Text>
+          <TextInput
+            placeholder="Ấn để nhập..."
+            style={styles.input}
+            keyboardType="numeric"
+            selectTextOnFocus
+            value={so_cong_nhan}
+            onChangeText={(so_nguoi) => {
+              setCN(so_nguoi.replace(/[^0-9]/g, ""));
+            }}
+          />
+        </Block>
+        <Block style={styles.cate}>
+          <Text style={styles.txtLabel}>Số thời vụ</Text>
+          <TextInput
+            placeholder="Ấn để nhập..."
+            style={styles.input}
+            keyboardType="numeric"
+            selectTextOnFocus
+            value={so_thoi_vu}
+            onChangeText={(so_nguoi) => {
+              setTV(so_nguoi.replace(/[^0-9]/g, ""));
+            }}
+          />
+        </Block>
+        {laiXeBocHang?.length ? (
+          <Block style={styles.cate}>
+            <Text
+              style={[
+                styles.txtLabel,
+                {
+                  marginBottom: 15,
+                },
+              ]}
+            >
+              Chọn các xe có lái xe bốc hàng
+            </Text>
+            {laiXeBocHang.map((el, id) => (
+              <Block
+                onPress={chonLaiXeBH(id)}
+                row
+                center
+                key={id}
+                style={{ marginBottom: 10 }}
+              >
+                <Checkbox
+                  size={20}
+                  color={colors.PRIMARY}
+                  value={el.boc_hang}
+                  onValueChange={chonLaiXeBH(id)}
+                />
+                <Text
+                  style={{
+                    color: colors.BLACK,
+                    fontSize: 15,
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                  }}
+                >
+                  {el?.lai_xe?.ten} - {el?.bien_kiem_soat} - {el?.dong_xe2?.ten}
+                </Text>
+              </Block>
+            ))}
+          </Block>
+        ) : null}
+        <Block style={styles.cate}>
+          <SMGGallery
+            images={anh}
+            name="anh"
+            label="Ảnh chụp khu vực làm việc"
+            pickOption={pickOption}
+            showActionSheet={() => setShowAS(true)}
+            isShowAS={showActionSheet}
+            onDismiss={() => {
+              setShowAS(false), fetchDone();
+            }}
+            renderImages={hienThiAnhXacNhan("anh")}
+          />
+        </Block>
+        <Block style={styles.cate}>
+          <Text style={styles.txtLabel}>Ghi chú</Text>
+          <TextInput
+            placeholder="Ấn để nhập..."
+            style={styles.minput}
+            multiline
+            placeholderTextColor={colors.GRAY}
+            value={ghi_chu}
+            onChangeText={(ghi_chu) => setGhiChu(ghi_chu)}
+          />
+        </Block>
+        <Block style={styles.cate}>
+          <Text style={styles.txtLabel}>Phụ phí (Nhập số lượng)</Text>
+          <Block row style={styles.wrapPP}>
+            <Block row center style={styles.ppT} space="between">
+              <TextInput
+                keyboardType="numeric"
+                value={pp_pt}
+                onChangeText={(text) => setPPPt(text)}
+                style={styles.ppInput}
+              />
+              <Text style={styles.ppTT}>Phương tiện</Text>
+            </Block>
+            <View style={{ width: 15 }} />
+            <Block row center style={styles.ppT}>
+              <TextInput
+                keyboardType="numeric"
+                style={styles.ppInput}
+                value={pp_ac}
+                onChangeText={(text) => setPPAc(text)}
+              />
+              <Text style={styles.ppTT}>Ăn ca</Text>
+            </Block>
+          </Block>
+          <Text
+            style={[
+              styles.txtLabel,
+              {
+                marginBottom: 10,
+                marginTop: 5,
+              },
+            ]}
+          >
+            Phụ phí (Nhập chi phí)
+          </Text>
+          <Block row center style={styles.ppT} space="between">
+            <TextInput
+              keyboardType="numeric"
+              value={pp_cx}
+              onChangeText={(text) => setPPcx(text)}
+              style={styles.ppInput}
+            />
+            <Text style={styles.ppTT}>Phí cân xe</Text>
+            <Text style={{ marginLeft: 7.5 }}>
+              = {formatCurrency(converToInt(pp_cx))} VND
+            </Text>
+          </Block>
+          <Block row center style={styles.ppT}>
+            <TextInput
+              value={pp_ghi_chu_cx}
+              onChangeText={(text) => setPPGhiChuCX(text)}
+              multiline
+              style={[styles.ppInput, { minHeight: 60 }]}
+            />
+            <Text style={styles.ppTT}>Ghi chú</Text>
+          </Block>
+          <View style={styles.linePP} />
+          <View style={{ width: 15 }} />
+          {/* THUE LAI XE */}
+          <Block row center style={styles.ppT}>
+            <TextInput
+              keyboardType="numeric"
+              value={pp_tlx}
+              onChangeText={(text) => setPPTlx(text)}
+              style={styles.ppInput}
+            />
+            <Text style={styles.ppTT}>Thuê lái xe</Text>
+            <Text style={{ marginLeft: 7.5 }}>
+              = {formatCurrency(converToInt(pp_tlx))} VND
+            </Text>
+          </Block>
+          <Block row center style={styles.ppT}>
+            <TextInput
+              value={pp_ghi_chu_tlx}
+              onChangeText={(text) => setPPGhiChuTLX(text)}
+              multiline
+              style={[styles.ppInput, { minHeight: 60 }]}
+            />
+            <Text style={styles.ppTT}>Ghi chú</Text>
+          </Block>
+          <View style={styles.linePP} />
+          {/* CHI PHI KHAC */}
+          <Block row center style={styles.ppT}>
+            <TextInput
+              keyboardType="numeric"
+              value={pp_cpk}
+              onChangeText={(text) => setPPCpk(text)}
+              style={styles.ppInput}
+            />
+            <Text style={styles.ppTT}>Chi phí khác</Text>
+            <Text style={{ marginLeft: 7.5 }}>
+              = {formatCurrency(converToInt(pp_cpk))} VND
+            </Text>
+          </Block>
+          <Block row center style={styles.ppT}>
+            <TextInput
+              value={pp_ghi_chu}
+              onChangeText={(text) => setPPGhiChu(text)}
+              multiline
+              style={[styles.ppInput, { minHeight: 60 }]}
+            />
+            <Text style={styles.ppTT}>Ghi chú</Text>
+          </Block>
+        </Block>
+        <Footer
+          label={bao_cao ? "CẬP NHẬT BÁO CÁO" : "TẠO BÁO CÁO"}
+          onPress={handleSubmit}
+        />
+      </ScrollView>
+    </Block>
+  );
+};
+
+const mapStateToProps = ({ main: { bao_cao }, shared: { isFetching } }) => ({
+  bao_cao,
+  isFetching,
+});
+
+const mapDispatchToProps = (dispatch) =>
+  bindActionCreators(
+    {
+      fetchDone: sharedActions.onDoneFetching,
+      fetching: sharedActions.onFetching,
+      taoBaoCaoHoanThanh: mainActions.taoBaoCaoHoanThanh,
+      getBaoCao: mainActions.getBaoCao,
+    },
+    dispatch
+  );
+
+BaoCaoHoanThanh.navigationOptions = ({ navigation }) => {
+  return {
+    headerTitle: "Báo cáo hoàn thành",
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(BaoCaoHoanThanh);
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.GRAY3,
+    paddingHorizontal: 5,
+  },
+  item: {
+    marginBottom: 20,
+  },
+  input: {
+    borderBottomColor: colors.GRAY2,
+    borderBottomWidth: 2 * StyleSheet.hairlineWidth,
+    marginTop: Platform.OS === "android" ? 0 : 10,
+    fontSize: 16,
+  },
+  minput: {
+    borderColor: colors.GRAY2,
+    borderWidth: 2 * StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    borderRadius: 3,
+    marginTop: 10,
+    minHeight: 60,
+    backgroundColor: "#F4F6F8",
+  },
+  txtLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: colors.BLACK,
+  },
+  imgContainer: {
+    flexWrap: "wrap",
+    marginTop: 10,
+  },
+  cate: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "white",
+    ...sharedStyles.shadow,
+    marginBottom: 10,
+    borderRightColor: colors.WHITE,
+    borderRightWidth: 4,
+    borderRadius: 4,
+    marginHorizontal: 0.5,
+  },
+  wrapPP: {
+    marginTop: 15,
+  },
+  ppT: {
+    marginVertical: 7.5,
+    flex: 1,
+  },
+  ppInput: {
+    flex: 1,
+    height: 40,
+    borderColor: colors.BORDER,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+  },
+  ppTT: {
+    position: "absolute",
+    top: -9,
+    left: 10,
+    fontSize: 14,
+    backgroundColor: colors.WHITE,
+    paddingHorizontal: 5,
+  },
+  linePP: {
+    height: StyleSheet.hairlineWidth,
+    width: "100%",
+    backgroundColor: colors.BORDER,
+    marginTop: 7.5,
+    marginBottom: 10,
+  },
+});
+
+import React, { useState, useEffect } from "react";
+import {
+  Dimensions,
+  Text,
+  StyleSheet,
+  TextInput,
+  Platform,
+  View,
+} from "react-native";
+import { Block } from "smg-react-native-components";
+import ImagePicker from "react-native-image-crop-picker";
+import ImageMarker, { Position } from "react-native-image-marker";
+import ImageResizer from "react-native-image-resizer";
+import Icon from "react-native-vector-icons/Feather";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { Checkbox } from "react-native-ui-lib";
+import { connect } from "react-redux";
+import Image from "react-native-fast-image";
+import { bindActionCreators, compose } from "redux";
+
+import { colors, styles as sharedStyles } from "../../theme";
+import moment from "moment";
+import { sharedActions } from "../../state/shared";
+import Lightbox from "../../components/Lightbox/Lightbox";
+import { ScrollView } from "react-native-gesture-handler";
+import Footer from "../../components/Footer";
+import { mainActions } from "../../state/main";
+import { RELEASE_ENDPOINT } from "../../constants/url";
+import SMGGallery from "../../components/SMGGallery/SMGGallery";
+import parseErrorStack from "react-native/Libraries/Core/Devtools/parseErrorStack";
+import { showMessage } from "react-native-flash-message";
+import { login } from "../../services";
+
+const { width, height } = Dimensions.get("window");
+const widthIMG = width - 100;
+
+const BaoCaoHoanThanh = ({
+  navigation,
+  bao_cao,
+  isFetching,
+  getBaoCao,
+  fetchDone,
+  fetching,
+  taoBaoCaoHoanThanh,
+}) => {
+  const [showActionSheet, setShowAS] = useState(false);
+  const [so_cong_nhan, setCN] = useState("0");
+  const [so_thoi_vu, setTV] = useState("0");
+  const [ghi_chu, setGhiChu] = useState("");
+  const [anh, setAnhs] = useState([]);
+  const [laiXeBocHang, setLXBH] = useState([]);
+  //PHU PHI
+  const [pp_pt, setPPPt] = useState("0");
+  const [pp_ac, setPPAc] = useState("0");
+  const [pp_cx, setPPcx] = useState("0");
+  const [pp_tlx, setPPTlx] = useState("0");
+  const [pp_cpk, setPPCpk] = useState("0");
+  const [pp_ghi_chu, setPPGhiChu] = useState("");
+
+  useEffect(() => {
+    const khach_hang_id = navigation.getParam("khach_hang_id");
+    const don_dieu_phoi_id = navigation.getParam("don_dieu_phoi_id");
+
+    const dsXe = navigation.getParam("xe");
+    if (dsXe.length)
+      setLXBH(
+        dsXe.map((el) => ({
+          ...el,
+          boc_hang: false,
+        }))
+      );
+    getBaoCao({ khach_hang_id, don_dieu_phoi_id });
+  }, []);
+
+  useEffect(() => {
+    console.log(bao_cao);
+    if (bao_cao) {
+      const {
+        so_nguoi,
+        ghi_chu,
+        anh: mangAnh,
+        lai_xe_boc_hang,
+        phu_phi,
+      } = bao_cao;
+      if (so_nguoi) {
+        // setSoNguoi(so_nguoi + "");
+        if (so_nguoi.chinh_thuc) setCN(so_nguoi.chinh_thuc + "");
+        if (so_nguoi.thoi_vu) setTV(so_nguoi.thoi_vu + "");
+      }
+      if (ghi_chu) {
+        setGhiChu(ghi_chu);
+      }
+      if (mangAnh.length) {
+        console.log(mangAnh);
+
+        setAnhs(
+          mangAnh.map((el) => ({
+            uri: `${RELEASE_ENDPOINT}/${el}`,
+          }))
+        );
+      }
+      if (lai_xe_boc_hang) {
+        const dsXe = navigation.getParam("xe");
+        if (dsXe.length) {
+          const newDsXe = dsXe.map((e) => ({
+            ...e,
+            boc_hang: lai_xe_boc_hang.includes(e.id),
+          }));
+          setLXBH(newDsXe);
+        }
+      }
+      if (phu_phi) {
+        if (phu_phi.an_ca) setPPAc(`${phu_phi.an_ca}`);
+        if (phu_phi.can_xe) setPPcx(`${phu_phi.can_xe}`);
+        if (phu_phi.chi_phi_khac) setPPCpk(`${phu_phi.an_ca}`);
+        if (phu_phi.ghi_chu) setPPGhiChu(`${phu_phi.ghi_chu}`);
+        if (phu_phi.phuong_tien) setPPPt(`${phu_phi.phuong_tien}`);
+        if (phu_phi.thue_lai_xe) setPPTlx(`${phu_phi.thue_lai_xe}`);
+      }
+    } else {
+      setCN("0");
+      setTV("0");
+      setPPAc("0");
+      setPPcx("0");
+      setPPCpk("0");
+      setPPPt("0");
+      setPPTlx("0");
+      setGhiChu("");
+      setPPGhiChu("");
+      setAnhs([]);
+    }
+  }, [bao_cao]);
+
+  const onSaveTo = (key, images) => {
+    switch (key) {
+      case "anh":
+        setAnhs([...anh, ...images]);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const pickOption = async (key, storeName) => {
+    fetching();
+    const text = moment().format("HH:mm:ss DD/MM/YYYY");
+    switch (key) {
+      case 1:
+        try {
+          const { path: src } = await ImagePicker.openCamera({
+            width,
+            height,
+            cropping: false,
+          });
+          const path = await ImageMarker.markText({
+            src,
+            text,
+            color: colors.PRIMARY,
+            fontName: "Arial-BoldItalicMT",
+            position: Position.topLeft,
+            scale: 1,
+            quality: 80,
+            fontSize: 60,
+          });
+          const uri = Platform.OS === "android" ? "file://" + path : path;
+          const compressedImg = await ImageResizer.createResizedImage(
+            uri,
+            1000,
+            1000,
+            "JPEG",
+            80
+          );
+          onSaveTo(storeName, [compressedImg]);
+        } catch (error) {
+          console.log(error);
+        }
+        break;
+      case 2:
+        try {
+          const images = await ImagePicker.openPicker({
+            multiple: true,
+          });
+          const promises = images.map(async (image) => {
+            const { path: src } = image;
+            const path = await ImageMarker.markText({
+              src,
+              text,
+              color: colors.PRIMARY,
+              fontName: "Arial-BoldItalicMT",
+              position: Position.topLeft,
+              scale: 1,
+              quality: 80,
+              fontSize: 60,
+            });
+            const uri = Platform.OS === "android" ? "file://" + path : path;
+            const compressedImg = await ImageResizer.createResizedImage(
+              uri,
+              1000,
+              1000,
+              "JPEG",
+              80
+            );
+            return compressedImg;
+          });
+
+          const resultImages = await Promise.all(promises);
+          onSaveTo(storeName, resultImages);
+        } catch (error) {
+          console.log(error);
+        }
+        break;
+      default:
+        break;
+    }
+    switch (storeName) {
+      case "anh":
+        setShowAS(false);
+        break;
+      default:
+        break;
+    }
+    fetchDone();
+  };
+
+  const xoaAnh = (index, storeName) => () => {
+    switch (storeName) {
+      case "anh":
+        console.log(index);
+        anh.splice(index, 1);
+        setAnhs([...anh]);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const hienThiAnhXacNhan = (storeName) => (item, index) => {
+    return (
+      <Block
+        style={[
+          {
+            marginBottom: 10,
+            marginHorizontal: 5,
+          },
+        ]}
+        key={index}
+      >
+        <Lightbox imageSource={`${item.uri}`}>
+          <Image
+            resizeMode="cover"
+            style={{
+              width: widthIMG / 4,
+              height: widthIMG / 4,
+              borderRadius: 5,
+            }}
+            source={{ uri: `${item.uri}` }}
+          />
+          <Block
+            onPress={xoaAnh(index, storeName)}
+            style={{
+              position: "absolute",
+              top: 5,
+              right: 5,
+            }}
+          >
+            <Icon name="x-circle" size={20} color={colors.ERROR} />
+          </Block>
+        </Lightbox>
+      </Block>
+    );
+  };
+
+  const handleSubmit = () => {
+    if (
+      validate(pp_pt, "phương tiện") &&
+      validate(pp_ac, "ăn ca") &&
+      validate(pp_cx, "phí cân xe") &&
+      validate(pp_tlx, "thuê lái xe") &&
+      validate(pp_cpk, "chi phí khác")
+    ) {
+      if (parseInt(pp_cpk) !== 0 && !pp_ghi_chu) {
+        return showMessage({
+          message: "Vui lòng nhập ghi chú cho chi phí khác!",
+          type: "danger",
+          icon: { icon: "danger", position: "left" },
+        });
+      }
+      const khach_hang_id = navigation.getParam("khach_hang_id");
+      const don_dieu_phoi_id = navigation.getParam("don_dieu_phoi_id");
+      taoBaoCaoHoanThanh({
+        khach_hang_id,
+        don_dieu_phoi_id,
+        so_nguoi: {
+          chinh_thuc: so_cong_nhan ? +so_cong_nhan : 0,
+          thoi_vu: so_thoi_vu ? +so_thoi_vu : 0,
+        },
+        ghi_chu,
+        lai_xe_boc_hang: laiXeBocHang.filter((el) => el.boc_hang),
+        anh,
+        phu_phi: {
+          phuong_tien: parseInt(pp_pt),
+          an_ca: parseInt(pp_ac),
+          can_xe: parseInt(pp_cx),
+          thue_lai_xe: parseInt(pp_tlx),
+          chi_phi_khac: parseInt(pp_cpk),
+          ghi_chu: pp_ghi_chu,
+        },
+      });
+    }
+  };
+
+  const validate = (value, key) => {
+    try {
+      const pattern = /^\d+$/;
+      const isValid = pattern.test(value.trim());
+      if (!isValid) {
+        showMessage({
+          message: `Số lượng ${key} không hợp lệ`,
+          type: "danger",
+          icon: { icon: "danger", position: "left" },
+        });
+      }
+      return isValid;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const chonLaiXeBH = (id) => () => {
+    laiXeBocHang[id].boc_hang = !laiXeBocHang[id].boc_hang;
+    setLXBH([...laiXeBocHang]);
+  };
+
+  return (
+    <Block flex={1} style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Block style={[styles.cate, { marginTop: 5 }]}>
+          <Text style={styles.txtLabel}>Số công nhân</Text>
+          <TextInput
+            placeholder="Ấn để nhập..."
+            style={styles.input}
+            keyboardType="numeric"
+            selectTextOnFocus
+            value={so_cong_nhan}
+            onChangeText={(so_nguoi) => {
+              setCN(so_nguoi.replace(/[^0-9]/g, ""));
+            }}
+          />
+        </Block>
+        <Block style={styles.cate}>
+          <Text style={styles.txtLabel}>Số thời vụ</Text>
+          <TextInput
+            placeholder="Ấn để nhập..."
+            style={styles.input}
+            keyboardType="numeric"
+            selectTextOnFocus
+            value={so_thoi_vu}
+            onChangeText={(so_nguoi) => {
+              setTV(so_nguoi.replace(/[^0-9]/g, ""));
+            }}
+          />
+        </Block>
+        {laiXeBocHang?.length ? (
+          <Block style={styles.cate}>
+            <Text
+              style={[
+                styles.txtLabel,
+                {
+                  marginBottom: 15,
+                },
+              ]}
+            >
+              Chọn các xe có lái xe bốc hàng
+            </Text>
+            {laiXeBocHang.map((el, id) => (
+              <Block
+                onPress={chonLaiXeBH(id)}
+                row
+                center
+                key={id}
+                style={{ marginBottom: 10 }}
+              >
+                <Checkbox
+                  size={20}
+                  color={colors.PRIMARY}
+                  value={el.boc_hang}
+                  onValueChange={chonLaiXeBH(id)}
+                />
+                <Text
+                  style={{
+                    color: colors.BLACK,
+                    fontSize: 15,
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                  }}
+                >
+                  {el?.lai_xe?.ten} - {el?.bien_kiem_soat} - {el?.dong_xe2?.ten}
+                </Text>
+              </Block>
+            ))}
+          </Block>
+        ) : null}
+        <Block style={styles.cate}>
+          <SMGGallery
+            images={anh}
+            name="anh"
+            label="Ảnh chụp khu vực làm việc"
+            pickOption={pickOption}
+            showActionSheet={() => setShowAS(true)}
+            isShowAS={showActionSheet}
+            onDismiss={() => {
+              setShowAS(false), fetchDone();
+            }}
+            renderImages={hienThiAnhXacNhan("anh")}
+          />
+        </Block>
+        <Block style={styles.cate}>
+          <Text style={styles.txtLabel}>Ghi chú</Text>
+          <TextInput
+            placeholder="Ấn để nhập..."
+            style={styles.minput}
+            multiline
+            placeholderTextColor={colors.GRAY}
+            value={ghi_chu}
+            onChangeText={(ghi_chu) => setGhiChu(ghi_chu)}
+          />
+        </Block>
+        <Block style={styles.cate}>
+          <Text style={styles.txtLabel}>Phụ phí (Nhập số lượng)</Text>
+          <Block row style={styles.wrapPP}>
+            <Block row center style={styles.ppT} space="between">
+              <TextInput
+                keyboardType="numeric"
+                value={pp_pt}
+                onChangeText={(text) => setPPPt(text)}
+                style={styles.ppInput}
+              />
+              <Text style={styles.ppTT}>Phương tiện</Text>
+            </Block>
+            <View style={{ width: 15 }} />
+            <Block row center style={styles.ppT}>
+              <TextInput
+                keyboardType="numeric"
+                style={styles.ppInput}
+                value={pp_ac}
+                onChangeText={(text) => setPPAc(text)}
+              />
+              <Text style={styles.ppTT}>Ăn ca</Text>
+            </Block>
+          </Block>
+          <Block row>
+            <Block row center style={styles.ppT} space="between">
+              <TextInput
+                keyboardType="numeric"
+                value={pp_cx}
+                onChangeText={(text) => setPPcx(text)}
+                style={styles.ppInput}
+              />
+              <Text style={styles.ppTT}>Phí cân xe</Text>
+            </Block>
+            <View style={{ width: 15 }} />
+            <Block row center style={styles.ppT}>
+              <TextInput
+                keyboardType="numeric"
+                value={pp_tlx}
+                onChangeText={(text) => setPPTlx(text)}
+                style={styles.ppInput}
+              />
+              <Text style={styles.ppTT}>Thuê lái xe</Text>
+            </Block>
+          </Block>
+          <View style={styles.linePP} />
+          <Block row center style={styles.ppT}>
+            <TextInput
+              keyboardType="numeric"
+              value={pp_cpk}
+              onChangeText={(text) => setPPCpk(text)}
+              style={styles.ppInput}
+            />
+            <Text style={styles.ppTT}>Chi phí khác</Text>
+          </Block>
+          <Block row center style={styles.ppT}>
+            <TextInput
+              value={pp_ghi_chu}
+              onChangeText={(text) => setPPGhiChu(text)}
+              multiline
+              style={[styles.ppInput, { minHeight: 60 }]}
+            />
+            <Text style={styles.ppTT}>Ghi chú</Text>
+          </Block>
+        </Block>
+        <Footer
+          label={bao_cao ? "CẬP NHẬT BÁO CÁO" : "TẠO BÁO CÁO"}
+          onPress={handleSubmit}
+        />
+      </ScrollView>
+    </Block>
+  );
+};
+
+const mapStateToProps = ({ main: { bao_cao }, shared: { isFetching } }) => ({
+  bao_cao,
+  isFetching,
+});
+
+const mapDispatchToProps = (dispatch) =>
+  bindActionCreators(
+    {
+      fetchDone: sharedActions.onDoneFetching,
+      fetching: sharedActions.onFetching,
+      taoBaoCaoHoanThanh: mainActions.taoBaoCaoHoanThanh,
+      getBaoCao: mainActions.getBaoCao,
+    },
+    dispatch
+  );
+
+BaoCaoHoanThanh.navigationOptions = ({ navigation }) => {
+  return {
+    headerTitle: "Báo cáo hoàn thành",
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(BaoCaoHoanThanh);
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.GRAY3,
+    paddingHorizontal: 5,
+  },
+  item: {
+    marginBottom: 20,
+  },
+  input: {
+    borderBottomColor: colors.GRAY2,
+    borderBottomWidth: 2 * StyleSheet.hairlineWidth,
+    marginTop: Platform.OS === "android" ? 0 : 10,
+    fontSize: 16,
+  },
+  minput: {
+    borderColor: colors.GRAY2,
+    borderWidth: 2 * StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    borderRadius: 3,
+    marginTop: 10,
+    minHeight: 60,
+    backgroundColor: "#F4F6F8",
+  },
+  txtLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: colors.BLACK,
+  },
+  imgContainer: {
+    flexWrap: "wrap",
+    marginTop: 10,
+  },
+  cate: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "white",
+    ...sharedStyles.shadow,
+    marginBottom: 10,
+    borderRightColor: colors.WHITE,
+    borderRightWidth: 4,
+    borderRadius: 4,
+    marginHorizontal: 0.5,
+  },
+  wrapPP: {
+    marginTop: 15,
+  },
+  ppT: {
+    marginVertical: 7.5,
+    flex: 1,
+  },
+  ppInput: {
+    flex: 1,
+    height: 40,
+    borderColor: colors.BORDER,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+  },
+  ppTT: {
+    position: "absolute",
+    top: -9,
+    left: 10,
+    fontSize: 14,
+    backgroundColor: colors.WHITE,
+    paddingHorizontal: 5,
+  },
+  linePP: {
+    height: StyleSheet.hairlineWidth,
+    width: "100%",
+    backgroundColor: colors.BORDER,
+    marginTop: 7.5,
+    marginBottom: 10,
+  },
+});
