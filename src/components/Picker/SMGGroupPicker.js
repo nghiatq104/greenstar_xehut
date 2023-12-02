@@ -1,21 +1,21 @@
-import _ from "lodash";
-import React, { Component } from "react";
+import _ from 'lodash';
+import React, {Component} from 'react';
 import {
   Modal,
   Platform,
   SafeAreaView,
   SectionList,
   TextInput,
-} from "react-native";
-import Icon from "react-native-vector-icons/Feather";
-import { colors } from "../../theme";
-import SMGText from "../Base/Text";
-import Block from "../Block";
-import styles from "./stylesPicker";
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import {colors} from '../../theme';
+import SMGText from '../Base/Text';
+import Block from '../Block';
+import styles from './stylesPicker';
 
 const enumMode = {
-  SINGLE: "SINGLE",
-  MULTI: "MULTI",
+  SINGLE: 'SINGLE',
+  MULTI: 'MULTI',
 };
 
 class SMGPicker extends Component {
@@ -30,39 +30,39 @@ class SMGPicker extends Component {
   }
 
   componentDidMount() {
-    const { data, value } = this.props;
+    const {data, value} = this.props;
 
     if (data.length) {
-      this.setState({ data, filterDS: data });
+      this.setState({data, filterDS: data});
     }
     if (value) {
-      if (typeof value === "object") {
-        this.setState({ selectedValue: [...value] });
+      if (typeof value === 'object') {
+        this.setState({selectedValue: [...value]});
       } else {
-        this.setState({ selectedValue: [value] });
+        this.setState({selectedValue: [value]});
       }
     }
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.value) {
-      this.setState({ selectedValue: nextProps.value });
+      this.setState({selectedValue: nextProps.value});
     }
     if (nextProps.data) {
-      this.setState({ data: nextProps.data, filterDS: nextProps.data });
+      this.setState({data: nextProps.data, filterDS: nextProps.data});
       if (nextProps.data?.length === 0) {
-        this.setState({ selectedValue: [] });
+        this.setState({selectedValue: []});
       }
     }
   }
 
   onSelect = (item) => () => {
-    const { selectedValue } = this.state;
-    const { mode, onChange } = this.props;
+    const {selectedValue} = this.state;
+    const {mode, onChange} = this.props;
 
     switch (mode) {
       case enumMode.MULTI:
-        const itemIndex = _.findIndex(selectedValue, (o) => o.id == item.id);
+        const itemIndex = _.findIndex(selectedValue, (o) => o?.id == item.id);
         if (itemIndex !== -1) {
           selectedValue.splice(itemIndex, 1);
         } else {
@@ -72,28 +72,26 @@ class SMGPicker extends Component {
         break;
 
       default:
-        this.setState({ selectedValue: [item] });
+        this.setState({selectedValue: [item]});
         onChange(item);
         this.hideModal();
         break;
     }
   };
 
-  renderItem = ({ item, index }) => {
-    const { selectedValue } = this.state;
+  renderItem = ({item, index}) => {
+    const {selectedValue} = this.state;
 
-    const checked = _.find(selectedValue, (o) => o.id == item.id) ? 1 : 0;
+    const checked = _.find(selectedValue, (o) => o?.id == item.id) ? 1 : 0;
     return (
       <Block
         key={index}
         style={styles.pickerItem}
         row
         center
-        onPress={this.onSelect(item)}
-      >
+        onPress={this.onSelect(item)}>
         <SMGText
-          style={{ flex: 1, color: checked ? colors.PRIMARY : colors.BLACK }}
-        >
+          style={{flex: 1, color: checked ? colors.PRIMARY : colors.BLACK}}>
           {item.ten}
         </SMGText>
         <Icon
@@ -108,15 +106,15 @@ class SMGPicker extends Component {
   onSearchChange = (keyword) => {
     const newSelectedValue = _.map(this.state.data, (elem) => {
       let data = _.filter(elem.data, (child) =>
-        child.ten.toLowerCase().includes(keyword.toLowerCase())
+        child.ten.toLowerCase().includes(keyword.toLowerCase()),
       );
-      return Object.assign({}, elem, { data });
+      return Object.assign({}, elem, {data});
     });
-    this.setState({ filterDS: newSelectedValue });
+    this.setState({filterDS: newSelectedValue});
   };
 
   renderSelectedValues = () => {
-    const { selectedValue } = this.state;
+    const {selectedValue} = this.state;
 
     return selectedValue.map((el, index) => (
       <Block
@@ -125,9 +123,8 @@ class SMGPicker extends Component {
         center
         middle
         onPress={this.onDeleteSelected(index)}
-        row
-      >
-        <SMGText color={colors.WHITE} style={{ marginRight: 5 }}>
+        row>
+        <SMGText color={colors.WHITE} style={{marginRight: 5}}>
           {el.ten}
         </SMGText>
         <Icon name="x" size={16} color={colors.WHITE} />
@@ -136,17 +133,17 @@ class SMGPicker extends Component {
   };
 
   onDeleteSelected = (idx) => () => {
-    const { onChange } = this.props;
+    const {onChange} = this.props;
     this.state.selectedValue.splice(idx, 1);
     this.setState({});
     onChange(this.state.selectedValue);
   };
 
   showModal = () => {
-    if (!this.props.disable) this.setState({ visible: true });
+    if (!this.props.disable) this.setState({visible: true});
   };
   hideModal = () => {
-    this.setState({ visible: false });
+    this.setState({visible: false});
   };
 
   resetData = () => {
@@ -169,7 +166,7 @@ class SMGPicker extends Component {
       underline,
       sectionTitlePrefix,
     } = this.props;
-    const { visible, data, filterDS, selectedValue } = this.state;
+    const {visible, data, filterDS, selectedValue} = this.state;
 
     return (
       <Block>
@@ -179,24 +176,22 @@ class SMGPicker extends Component {
             row
             center
             style={[underline && styles.underline]}
-            padding={[5, 0]}
-          >
+            padding={[5, 0]}>
             <SMGText
               style={{
                 flex: 1,
                 fontWeight: Platform.select({
-                  ios: "600",
-                  android: "bold",
+                  ios: '600',
+                  android: 'bold',
                 }),
               }}
-              color={colors.IOS_BTN}
-            >
+              color={colors.IOS_BTN}>
               {mode === enumMode.MULTI
                 ? selectedValue.length
                   ? placeholderEdit
                   : placeholder
                 : selectedValue.length
-                ? selectedValue[0].ten
+                ? selectedValue[0]?.customer_kd?.name || selectedValue[0].ten
                 : placeholder}
             </SMGText>
             <Icon name="chevron-down" size={20} color={colors.IOS_BTN} />
@@ -210,10 +205,9 @@ class SMGPicker extends Component {
         <Modal
           visible={visible}
           animationType="slide"
-          onRequestClose={this.hideModal}
-        >
-          <Block flex={1} style={{ backgroundColor: "white" }}>
-            <SafeAreaView style={{ backgroundColor: colors.GRAY3 }} />
+          onRequestClose={this.hideModal}>
+          <Block flex={1} style={{backgroundColor: 'white'}}>
+            <SafeAreaView style={{backgroundColor: colors.GRAY3}} />
             <Block row style={styles.header}>
               <Block style={styles.xBtn} onPress={this.resetData}>
                 <Icon name="x" size={24} color={colors.BLACK} />
@@ -226,8 +220,7 @@ class SMGPicker extends Component {
                   style={styles.rightHeader}
                   middle
                   center
-                  onPress={this.onDone}
-                >
+                  onPress={this.onDone}>
                   <SMGText color={colors.COLOR_INFO}>Chọn</SMGText>
                 </Block>
               ) : (
@@ -246,9 +239,9 @@ class SMGPicker extends Component {
               <SectionList
                 showsVerticalScrollIndicator={false}
                 sections={filterDS}
-                keyExtractor={(item, index) => index + ""}
+                keyExtractor={(item, index) => index + ''}
                 renderItem={this.renderItem}
-                renderSectionHeader={({ section }) => {
+                renderSectionHeader={({section}) => {
                   const isShow = section.data.length ? 1 : 0;
                   if (isShow)
                     return (
@@ -275,10 +268,10 @@ SMGPicker.defaultProps = {
   mode: enumMode.SINGLE,
   data: [],
   showSearch: false,
-  placeholder: "Ấn để chọn",
-  placeholderEdit: "Ấn để sửa",
-  searchPlaceholder: "Tìm kiếm",
-  sectionTitlePrefix: "",
+  placeholder: 'Ấn để chọn',
+  placeholderEdit: 'Ấn để sửa',
+  searchPlaceholder: 'Tìm kiếm',
+  sectionTitlePrefix: '',
   underline: false,
 };
 

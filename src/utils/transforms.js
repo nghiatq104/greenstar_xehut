@@ -1,16 +1,16 @@
-import _ from "lodash";
+import _ from 'lodash';
 
 export const transformCustomer = (arr) => {
-  return arr.map((el) => ({ ...el, label: el.ten, value: el.id }));
+  return arr.map((el) => ({...el, label: el.ten, value: el.id}));
 };
 
 export const transformVatTu = (arr) => {
-  return arr.map((el) => ({ ...el, count: 0 }));
+  return arr.map((el) => ({...el, count: 0}));
 };
 
 export const transformWithKeyIsID = (arr) => {
   if (arr.length) {
-    return arr.reduce((acc, el) => ({ ...acc, [el.id]: el }), {});
+    return arr.reduce((acc, el) => ({...acc, [el.id]: el}), {});
   }
 
   return {};
@@ -21,25 +21,26 @@ export const transformKhachHang = (arr) => {
   try {
     _.map(arr, (item) => {
       if (item.active) {
-        const key_khuvuc = item.khu_vuc.ten;
+        const key_khuvuc = item?.khu_vuc?.ten;
         const pushItem = {
-          id: item.id,
-          ma: item.ma,
-          ten: item.ten,
-          label: item.ten,
-          value: item.id,
-          dia_chi: item.dia_chi,
-          so_dien_thoai: item.so_dien_thoai,
-          khu_vuc_id: item.khu_vuc.id,
+          id: item?.id,
+          ma: item?.ma,
+          ten: item?.customer_kd?.name,
+          label: item?.customer_kd?.name,
+          value: item?.id,
+          dia_chi: item?.dia_chi || item?.customer_kd?.address,
+          so_dien_thoai: item?.so_dien_thoai,
+          khu_vuc_id: item?.khu_vuc?.id,
         };
-
-        if (sectionData[key_khuvuc]) {
-          sectionData[key_khuvuc].data.push(pushItem);
-        } else {
-          sectionData[key_khuvuc] = {
-            title: key_khuvuc,
-            data: [pushItem],
-          };
+        if (key_khuvuc) {
+          if (sectionData[key_khuvuc]) {
+            sectionData[key_khuvuc].data.push(pushItem);
+          } else {
+            sectionData[key_khuvuc] = {
+              title: key_khuvuc,
+              data: [pushItem],
+            };
+          }
         }
       }
     });
@@ -98,12 +99,12 @@ export const transformDongXe = (arr) => {
 
 export const securePhone = (phone, len = 3) => {
   try {
-    let newPhone = "";
+    let newPhone = '';
     const length = phone.length;
     const newLen = length <= len ? 1 : len;
-    phone.split("").map((el, index) => {
+    phone.split('').map((el, index) => {
       if (index < length - newLen) {
-        newPhone += "*";
+        newPhone += '*';
       } else {
         newPhone += el;
       }
@@ -115,24 +116,24 @@ export const securePhone = (phone, len = 3) => {
 };
 
 export const secureEmail = (email) => {
-  const [left, right] = email.split("@");
+  const [left, right] = email.split('@');
 
   if (left && right) {
-    return securePhone(left) + "@" + right;
+    return securePhone(left) + '@' + right;
   } else {
     return securePhone(left);
   }
 };
 
-export const formatCurrency = (n, separate = ".") => {
+export const formatCurrency = (n, separate = '.') => {
   try {
     if (!n) n = 0;
-    var s = typeof n === "number" ? parseInt(n).toString() : "0";
+    var s = typeof n === 'number' ? parseInt(n).toString() : '0';
     var regex = /\B(?=(\d{3})+(?!\d))/g;
     var ret = s.replace(regex, separate);
     return ret;
   } catch (error) {
-    return "0";
+    return '0';
   }
 };
 

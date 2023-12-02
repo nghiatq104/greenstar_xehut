@@ -1,22 +1,22 @@
-import React, { useState, useMemo, forwardRef } from "react";
-import { StyleSheet, Keyboard, Text } from "react-native";
-import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
-import { colors } from "../../theme";
-import { scale } from "../../utils/responsive";
-import Animated from "react-native-reanimated";
-import { timing, string } from "react-native-redash";
-import Icon from "react-native-vector-icons/Feather";
-import SMGBorderlessBotton from "../SMGButton/SMGBorderlessBotton";
-import Block from "../Block";
+import React, {useState, useMemo, forwardRef} from 'react';
+import {StyleSheet, Keyboard, Text} from 'react-native';
+import {TextInput, TouchableOpacity} from 'react-native-gesture-handler';
+import {colors} from '../../theme';
+import {scale} from '../../utils/responsive';
+import Animated from 'react-native-reanimated';
+import {timing, string} from 'react-native-redash';
+import Icon from 'react-native-vector-icons/Feather';
+import SMGBorderlessBotton from '../SMGButton/SMGBorderlessBotton';
+import Block from '../Block';
 
-const { block, useCode, cond, eq, and, set, Clock, interpolate } = Animated;
+const {block, useCode, cond, eq, and, set, Clock, interpolate} = Animated;
 
 const SMGTextInput = React.forwardRef((props, ref) => {
   const {
     value,
     onChangeText,
     placeholder,
-    error = "",
+    error = '',
     conainterStyle = {},
     submitEditing,
     placeholderStyle = {},
@@ -29,21 +29,21 @@ const SMGTextInput = React.forwardRef((props, ref) => {
       value ? new Animated.Value(1) : new Animated.Value(0),
       new Clock(),
     ],
-    []
+    [],
   );
 
   const onFocus = () => {
-    console.log("focus");
+    console.log('focus');
 
     isFocus.setValue(1);
   };
   const onBlur = () => {
-    console.log("blur");
+    console.log('blur');
     isFocus.setValue(0);
   };
 
   const onSubmitEditing = () => {
-    console.log("submit");
+    console.log('submit');
     if (submitEditing) {
       submitEditing();
     } else {
@@ -55,14 +55,14 @@ const SMGTextInput = React.forwardRef((props, ref) => {
     block([
       cond(
         and(eq(isFocus, 1), eq(hasValue, 0)),
-        set(aniValue, timing({ clock, from: aniValue, to: 0, duration: 100 }))
+        set(aniValue, timing({clock, from: aniValue, to: 0, duration: 100})),
       ),
       cond(
         and(eq(isFocus, 0), eq(hasValue, 0)),
-        set(aniValue, timing({ clock, from: aniValue, to: 1, duration: 100 }))
+        set(aniValue, timing({clock, from: aniValue, to: 1, duration: 100})),
       ),
     ]),
-    []
+    [],
   );
 
   const inputRange = [0, 1];
@@ -79,10 +79,9 @@ const SMGTextInput = React.forwardRef((props, ref) => {
       style={[
         styles.container,
         conainterStyle,
-        { borderColor: error ? colors.ERROR : colors.GRAY },
+        {borderColor: error ? colors.ERROR : colors.GRAY},
       ]}
-      {...rest}
-    >
+      {...rest}>
       <Animated.View
         style={[
           styles.label,
@@ -93,8 +92,7 @@ const SMGTextInput = React.forwardRef((props, ref) => {
               },
             ],
           },
-        ]}
-      >
+        ]}>
         <Animated.Text
           style={[
             placeholderStyle,
@@ -103,8 +101,7 @@ const SMGTextInput = React.forwardRef((props, ref) => {
               fontSize,
               marginRight: 5,
             },
-          ]}
-        >
+          ]}>
           {placeholder} {error}
         </Animated.Text>
         {error ? <Icon name="alert-circle" color={colors.ERROR} /> : null}
@@ -130,11 +127,10 @@ const SMGTextInput = React.forwardRef((props, ref) => {
         <SMGBorderlessBotton
           style={styles.btnClose}
           onPress={() => {
-            onChangeText("");
+            onChangeText('');
             ref.current.focus();
             hasValue.setValue(0);
-          }}
-        >
+          }}>
           <Icon name="x" size={20} />
         </SMGBorderlessBotton>
       ) : null}
@@ -153,18 +149,18 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   label: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 15,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   input: {
     height: 40,
     flex: 1,
   },
   btnClose: {
-    position: "absolute",
+    position: 'absolute',
     top: 12.5,
     right: 15,
   },

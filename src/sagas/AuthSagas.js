@@ -1,14 +1,14 @@
-import { takeLatest, put, select, call, all } from "redux-saga/effects";
-import { authTypes as types } from "../state/authentication";
-import { NavigationActions } from "react-navigation";
-import { sharedTypes } from "../state/shared";
-import * as NavigationService from "../utils/NavigationService";
-import * as OneSignalService from "../utils/OneSignalService";
-import * as APIs from "../services";
-import { mainTypes } from "../state/main";
-import { showMessage } from "react-native-flash-message";
-import { storeT, handleError } from "../utils/http";
-import moment from "moment";
+import {takeLatest, put, select, call, all} from 'redux-saga/effects';
+import {authTypes as types} from '../state/authentication';
+import {NavigationActions} from 'react-navigation';
+import {sharedTypes} from '../state/shared';
+import * as NavigationService from '../utils/NavigationService';
+import * as OneSignalService from '../utils/OneSignalService';
+import * as APIs from '../services';
+import {mainTypes} from '../state/main';
+import {showMessage} from 'react-native-flash-message';
+import {storeT, handleError} from '../utils/http';
+import moment from 'moment';
 
 function* splashScreen() {
   const userToken = yield call(storeT.getToken);
@@ -23,8 +23,8 @@ function* splashScreen() {
         call(APIs.layDSDonHang, ngay_thuc_hien),
         call(APIs.layDSThongBao),
       ]);
-      OneSignalService.sendTag("user_id", profile.id);
-      OneSignalService.sendTag("user_type", "xe_hut");
+      OneSignalService.sendTag('user_id', profile.id);
+      OneSignalService.sendTag('user_type', 'xe_hut');
       yield put({
         type: mainTypes.LAY_DU_LIEU_FORM_SC,
         payload: {
@@ -46,17 +46,17 @@ function* splashScreen() {
         payload: thong_bao,
       });
       if (profile && profile.role_id == 2) {
-        NavigationService.navigate("AdminTab");
+        NavigationService.navigate('AdminTab');
       } else {
-        NavigationService.navigate("MainTab");
+        NavigationService.navigate('MainTab');
       }
     } catch (error) {
       handleError(error);
       storeT.removeToken();
-      NavigationService.navigate("Auth");
+      NavigationService.navigate('Auth');
     }
   else {
-    NavigationService.navigate("Auth");
+    NavigationService.navigate('Auth');
   }
 }
 
@@ -66,7 +66,7 @@ export function* splashScreenWatcher() {
 
 function* authenticationWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
     yield call(APIs.dangnhap, action.payload);
     const ngay_thuc_hien = yield select((state) => state.main.ngay_hien_tai);
     const [profile, khach_hang, xe, ca, don_hang, thong_bao] = yield all([
@@ -77,8 +77,9 @@ function* authenticationWorker(action) {
       call(APIs.layDSDonHang, ngay_thuc_hien),
       call(APIs.layDSThongBao),
     ]);
-    OneSignalService.sendTag("user_id", profile.id);
-    OneSignalService.sendTag("user_type", "xe_hut");
+
+    OneSignalService.sendTag('user_id', profile.id);
+    OneSignalService.sendTag('user_type', 'xe_hut');
     yield put({
       type: mainTypes.LAY_DU_LIEU_FORM_SC,
       payload: {
@@ -100,20 +101,20 @@ function* authenticationWorker(action) {
       payload: thong_bao,
     });
     if (profile && profile.role_id == 2) {
-      NavigationService.navigate("AdminTab");
+      NavigationService.navigate('AdminTab');
     } else {
-      NavigationService.navigate("MainTab");
+      NavigationService.navigate('MainTab');
     }
   } catch (error) {
-    if (!handleError(error)) console.log({ ...error });
+    if (!handleError(error)) console.log({...error});
 
     showMessage({
-      message: "Đăng nhập thất bại",
-      type: "danger",
-      icon: { icon: "danger", position: "left" },
+      message: 'Đăng nhập thất bại',
+      type: 'danger',
+      icon: {icon: 'danger', position: 'left'},
     });
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 
@@ -124,7 +125,7 @@ export function* authenticationWatcher() {
 function* logoutWorker(_action) {
   // NavigationService.navigate("LoginScreen");
   yield call(storeT.removeToken);
-  OneSignalService.sendTag("user_id", "");
+  OneSignalService.sendTag('user_id', '');
 }
 
 export function* logoutWatcher() {
@@ -132,28 +133,28 @@ export function* logoutWatcher() {
 }
 function* doiMatKhauWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
     const res = yield call(APIs.doiMatKhau, action.payload);
     console.log(res);
-    const { token } = res.result;
+    const {token} = res.result;
     storeT.setToken(token);
     showMessage({
-      message: "Đổi mật khẩu thành công",
-      type: "success",
-      icon: { icon: "success", position: "left" },
+      message: 'Đổi mật khẩu thành công',
+      type: 'success',
+      icon: {icon: 'success', position: 'left'},
     });
-    NavigationService.navigate("TaiKhoan");
+    NavigationService.navigate('TaiKhoan');
   } catch (error) {
     if (!handleError(error))
       if (error.response) {
         showMessage({
           message: error.response.data.message,
-          type: "danger",
-          icon: { icon: "danger", position: "left" },
+          type: 'danger',
+          icon: {icon: 'danger', position: 'left'},
         });
       }
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 

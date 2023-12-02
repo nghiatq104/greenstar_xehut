@@ -1,9 +1,9 @@
-import { StyleSheet, Platform } from "react-native";
-import { colors } from ".";
+import {StyleSheet, Platform} from 'react-native';
+// import {colors} from '.';
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 1,
       height: 1,
@@ -14,12 +14,12 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: Platform.select({
-      ios: "600",
-      android: "bold",
+      ios: '600',
+      android: 'bold',
     }),
   },
   wrap: {
-    backgroundColor: colors.GRAY3,
+    backgroundColor: '#F0F0F0',
     paddingHorizontal: 10,
     paddingVertical: 7.5,
     marginTop: 10,

@@ -1,14 +1,14 @@
-import { ENDPOINT, route, RELEASE_ENDPOINT } from "../constants/url";
-import http, { storeT } from "../utils/http";
-import { generateUUID } from "../utils";
-import moment from "moment";
+import {ENDPOINT, route, RELEASE_ENDPOINT} from '../constants/url';
+import http, {storeT} from '../utils/http';
+import {generateUUID} from '../utils';
+import moment from 'moment';
 
 export const login = async (UserData) => {
   try {
     const response = await http.post(route.LOGIN, UserData);
     return response.data;
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
     return Promise.reject(error);
   }
 };
@@ -49,9 +49,9 @@ export const dangnhap = async (user_data) => {
   try {
     const res = await http.post(route.DANG_NHAP, {
       ...user_data,
-      role: "manager",
+      role: 'manager',
     });
-    const { token } = res.data.result;
+    const {token} = res.data.result;
     storeT.setToken(token);
     return 1;
   } catch (error) {
@@ -78,17 +78,15 @@ export const toi = async () => {
 export const taoDonHang = async (data) => {
   try {
     const res = await http.post(route.TAO_DON_HANG, data);
-    console.log(res);
     return res.data;
   } catch (error) {
     return Promise.reject(error);
   }
 };
 //SUA LICH XE
-export const suaLichXe = async ({ id, details }) => {
+export const suaLichXe = async ({id, details}) => {
   try {
     const res = await http.put(`${route.TAO_DON_HANG}/${id}`, details);
-    console.log(res);
     return res.data;
   } catch (error) {
     return Promise.reject(error);
@@ -98,7 +96,6 @@ export const suaLichXe = async ({ id, details }) => {
 export const xoaLichXe = async (id) => {
   try {
     const res = await http.delete(`${route.TAO_DON_HANG}/${id}`);
-    console.log(res);
 
     return res.data;
   } catch (error) {
@@ -108,7 +105,7 @@ export const xoaLichXe = async (id) => {
 export const layDSDonHang = async (date) => {
   try {
     const res = await http.get(
-      `${route.DANH_SACH_DON_HANG}?ngay[]=${date}&ngay[]=${date}`
+      `${route.DANH_SACH_DON_HANG}?ngay[]=${date}&ngay[]=${date}`,
     );
     return res.data.data;
   } catch (error) {
@@ -119,8 +116,8 @@ export const layDSCongViec = async (date) => {
   try {
     const res = await http.get(
       `${route.DANH_SACH_CONG_VIEC}?date=${
-        date ? date : moment().format("DD/MM/YYYY")
-      }`
+        date ? date : moment().format('DD/MM/YYYY')
+      }`,
     );
     return res.data.result;
   } catch (error) {
@@ -165,16 +162,16 @@ const initTT = {
   yeu_cau_thoi_vu: 0,
 };
 
-export const layTTDieuPhoi = async ({ date, ca_id }) => {
+export const layTTDieuPhoi = async ({date, ca_id}) => {
   try {
     const res = await http.get(
       `${route.THONG_TIN_DIEU_PHOI}?ca=${ca_id}&ngay=${moment(date).format(
-        "YYYY-MM-DD"
-      )}`
+        'YYYY-MM-DD',
+      )}`,
     );
-    return { ...initTT, ...res.data.result };
+    return {...initTT, ...res.data.result};
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
 
     return Promise.resolve({
       don_dat_hang: 0,
@@ -200,16 +197,16 @@ const initTTCV = {
   yeu_cau_thoi_vu: 0,
 };
 
-export const layTTDieuPhoiCongViec = async ({ date, ca_id }) => {
+export const layTTDieuPhoiCongViec = async ({date, ca_id}) => {
   try {
     const res = await http.get(
       `${route.THONG_TIN_DIEU_PHOI_CONG_VIEC}?ca=${ca_id}&ngay=${moment(
-        date
-      ).format("YYYY-MM-DD")}`
+        date,
+      ).format('YYYY-MM-DD')}`,
     );
-    return { ...initTTCV, ...res.data.result };
+    return {...initTTCV, ...res.data.result};
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
 
     return Promise.resolve({
       don_dat_hang: 0,
@@ -245,7 +242,7 @@ export const layDSHangBan = async () => {
 
 export const baoBanThang = async (data) => {
   try {
-    const { anh: as, hang_hoa_chinh, chi_tiet_mat_hang, ...rest } = data;
+    const {anh: as, hang_hoa_chinh, chi_tiet_mat_hang, ...rest} = data;
     const anh = await uploadMultiImage2(as);
     const reqData = {
       ...rest,
@@ -255,7 +252,7 @@ export const baoBanThang = async (data) => {
     };
 
     const res = await http.post(route.BAO_BAN_THANG, reqData);
-    console.log(res);
+
     return res.data;
   } catch (error) {
     return Promise.reject(error);
@@ -264,7 +261,7 @@ export const baoBanThang = async (data) => {
 export const baoKhongBanThang = async (id) => {
   try {
     const res = await http.put(`${route.KHONG_BAO_BAN_THANG}/${id}`);
-    console.log(res);
+
     return res.data;
   } catch (error) {
     return Promise.reject(error);
@@ -273,8 +270,8 @@ export const baoKhongBanThang = async (id) => {
 
 export const taoPhieuMuaHang = async (tt_phieu_mua_hang) => {
   try {
-    console.log("tao PMH", tt_phieu_mua_hang);
-    const { hinh_anhs: imgs, ...rest } = tt_phieu_mua_hang;
+    console.log('tao PMH', tt_phieu_mua_hang);
+    const {hinh_anhs: imgs, ...rest} = tt_phieu_mua_hang;
     const hinh_anhs = await uploadMultiImage2(imgs);
 
     const res = await http.post(`${route.TAO_PHIEU_MUA_HANG}`, {
@@ -283,15 +280,15 @@ export const taoPhieuMuaHang = async (tt_phieu_mua_hang) => {
     });
     return res.data;
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
     return Promise.reject(error);
   }
 };
 
-export const capNhatPhieuMuaHang = async ({ idx, tt_phieu_mua_hang }) => {
+export const capNhatPhieuMuaHang = async ({idx, tt_phieu_mua_hang}) => {
   try {
-    console.log("update");
-    const { hinh_anhs: imgs, ...rest } = tt_phieu_mua_hang;
+    console.log('update');
+    const {hinh_anhs: imgs, ...rest} = tt_phieu_mua_hang;
     const hinh_anhs = await uploadMultiImage2(imgs);
     const res = await http.post(`${route.TAO_PHIEU_MUA_HANG}/${idx}`, {
       ...rest,
@@ -299,7 +296,7 @@ export const capNhatPhieuMuaHang = async ({ idx, tt_phieu_mua_hang }) => {
     });
     return res.data;
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
 
     return Promise.reject(error);
   }
@@ -317,7 +314,7 @@ export const layLichSuDanhGia = async () => {
 
 export const taoDanhGia = async (tt_san_pham) => {
   try {
-    const { id, danh_sach_anh, ...rest } = tt_san_pham;
+    const {id, danh_sach_anh, ...rest} = tt_san_pham;
     const hinh_anhs = await uploadMultiImage2(danh_sach_anh);
 
     let res;
@@ -334,7 +331,7 @@ export const taoDanhGia = async (tt_san_pham) => {
     }
     return res.data;
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
     return Promise.reject(error);
   }
 };
@@ -348,39 +345,37 @@ export const xoaDanhGia = async (id) => {
   }
 };
 
-export const uploadImg = async ({ uri, name }) => {
+export const uploadImg = async ({uri, name}) => {
   const formData = new FormData();
-  formData.append("file", {
+  formData.append('file', {
     uri,
-    type: "image/jpg",
+    type: 'image/jpg',
     name,
   });
 
   const config = {
     headers: {
-      "Content-Type": "multipart/form-data",
+      'Content-Type': 'multipart/form-data',
     },
   };
   return new Promise((resolve, reject) => {
     http.post(route.UPLOAD_ANH, formData, config).then(
       (response) => {
         if (response.data?.result?.url) resolve(response.data.result.url);
-        else reject("asdjias");
+        else reject('asdjias');
       },
       (error) => {
-        console.log({ ...error });
+        console.log({...error});
         reject(error);
-      }
+      },
     );
   });
 };
 
-export const getBaoCao = async ({ khach_hang_id, don_dieu_phoi_id }) => {
+export const getBaoCao = async ({khach_hang_id, don_dieu_phoi_id}) => {
   try {
     const res = await http.get(
-      `${
-        route.BAO_CAO_HOAN_THANH
-      }?khach_hang_id=${khach_hang_id}&don_dieu_phoi_id=${don_dieu_phoi_id}`
+      `${route.BAO_CAO_HOAN_THANH}?khach_hang_id=${khach_hang_id}&don_dieu_phoi_id=${don_dieu_phoi_id}`,
     );
     return res.data.result;
   } catch (error) {
@@ -388,14 +383,14 @@ export const getBaoCao = async ({ khach_hang_id, don_dieu_phoi_id }) => {
   }
 };
 
-export const layBaoCaoLichXe = async ({ start, end }) => {
+export const layBaoCaoLichXe = async ({start, end}) => {
   try {
     const res = await http.get(
-      `${route.BAO_CAO_LICH_XE}?ngay[]=${start}&ngay[]=${end}`
+      `${route.BAO_CAO_LICH_XE}?ngay[]=${start}&ngay[]=${end}`,
     );
     return res.data;
   } catch (error) {
-    console.log({ ...error });
+    console.log({...error});
     return Promise.reject(error);
   }
 };
@@ -430,7 +425,7 @@ export const taoBaoCaoHoanThanh = async (payload) => {
   } catch (error) {
     console.log(error);
 
-    console.log({ ...error });
+    console.log({...error});
     return Promise.reject(error);
   }
 };
@@ -442,7 +437,7 @@ export const uploadMultiImage2 = async (images) => {
     for (let i = 0; i < dataLength; i += 5) {
       const requests = images.slice(i, i + 5).map((item) => {
         if (item.name) return uploadImg(item);
-        return Promise.resolve(item.uri.replace(`${RELEASE_ENDPOINT}/`, ""));
+        return Promise.resolve(item.uri.replace(`${RELEASE_ENDPOINT}/`, ''));
       });
       const uploaded = await Promise.all(requests);
       success = [...success, ...uploaded];

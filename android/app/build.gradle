@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal 
+    }
+    dependencies {
+        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.12.1, 0.99.99]'
+    }
+}
+
+apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
+
 apply plugin: "com.android.application"
 
 import com.android.build.OutputFile
@@ -91,12 +102,12 @@ apply from: "../../node_modules/react-native/react.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-def enableSeparateBuildPerCPUArchitecture = false
+def enableSeparateBuildPerCPUArchitecture = true
 
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore.
@@ -122,18 +133,29 @@ def enableHermes = project.ext.react.get("enableHermes", false);
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
+    ndkVersion rootProject.ext.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libfbjni.so'
+    }
+
+    flavorDimensions "default"
+
     defaultConfig {
         applicationId "com.greenstar_xehut"
+        resValue "string", "app_name", 'NSX Xe Hut'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
+        versionCode 10
+        versionName "1.0.10"
     }
     splits {
         abi {
@@ -150,6 +172,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+         release {
+            storeFile file(MY_AWESOME_PROJECT_RELEASE_STORE_FILE)
+            storePassword MY_AWESOME_PROJECT_RELEASE_STORE_PASSWORD
+            keyAlias MY_AWESOME_PROJECT_RELEASE_KEY_ALIAS
+            keyPassword MY_AWESOME_PROJECT_RELEASE_KEY_PASSWORD
+        }
     }
     buildTypes {
         debug {
@@ -164,6 +192,8 @@ android {
         }
     }
 
+
+
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
@@ -175,18 +205,20 @@ android {
                 output.versionCodeOverride =
                         versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
             }
-
         }
+        
     }
 }
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation "com.facebook.react:react-native:+"  // From node_module
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-
+    implementation("androidx.core:core-splashscreen:1.0.0")
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
+    
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }
@@ -207,6 +239,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+   
 }
 
 // Run this once to be able to run the application with BUCK

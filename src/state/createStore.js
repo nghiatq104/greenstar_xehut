@@ -1,5 +1,5 @@
-import { applyMiddleware, compose, createStore } from "redux";
-import createSagaMiddleware from "redux-saga";
+import {applyMiddleware, compose, createStore} from 'redux';
+import createSagaMiddleware from 'redux-saga';
 
 // creates the store
 export default (rootReducer, rootSaga) => {
@@ -15,7 +15,7 @@ export default (rootReducer, rootSaga) => {
 
   /* ------------- Redux Logger ------------- */
 
-  if (__DEV__) middleware.push(require("redux-logger").logger);
+  // if (__DEV__) middleware.push(require("redux-logger").logger);
 
   /* ------------- Assemble Middleware ------------- */
 
@@ -29,6 +29,6 @@ export default (rootReducer, rootSaga) => {
   return {
     store,
     sagasManager,
-    sagaMiddleware
+    sagaMiddleware,
   };
 };

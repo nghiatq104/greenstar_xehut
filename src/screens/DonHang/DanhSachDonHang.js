@@ -39,7 +39,6 @@ class Bills extends Component {
               <Icon name="calendar" size={16} />
               <Text>{navigation.getParam('dateString')}</Text>
             </Block>
-
             <Picker
               style={{height: 50, width: 150}}
               mode="dropdown"
@@ -47,6 +46,7 @@ class Bills extends Component {
               onValueChange={navigation.getParam('pickerChange')}>
               <Picker.Item label="Ca Sáng" value={1} />
               <Picker.Item label="Ca Chiều" value={2} />
+              <Picker.Item label="Ca Tối" value={3} />
             </Picker>
           </Block>
         ),
@@ -80,14 +80,18 @@ class Bills extends Component {
             onPress={() => {
               ActionSheetIOS.showActionSheetWithOptions(
                 {
-                  options: ['Huỷ', 'Ca sáng', 'Ca chiều'],
+                  options: ['Huỷ', 'Ca sáng', 'Ca chiều', 'Ca tối'],
                   cancelButtonIndex: 0,
                 },
                 navigation.getParam('pickerChange'),
               );
             }}>
             <Text style={{...preStyles.bold, color: colors.IOS_BTN}}>
-              {navigation.getParam('ca') === 1 ? 'Ca sáng' : 'Ca chiều'}
+              {navigation.getParam('ca') === 1
+                ? 'Ca sáng'
+                : navigation.getParam('ca') === 2
+                ? 'Ca chiều'
+                : 'Ca tối'}
             </Text>
           </TouchableOpacity>
         </Block>
@@ -200,9 +204,22 @@ class Bills extends Component {
               marginVertical: 5,
             }}
           />
-          <Text style={[styles.t_2]}>
-            Khu vực: <Text style={styles.txtB}>{item?.khuvuc?.ten}</Text>
-          </Text>
+          {/* {item?.khuvuc?.ten ? (
+            <Text style={[styles.t_2]}>
+              Khu vực: <Text style={styles.txtB}>{item?.khuvuc?.ten}</Text>
+            </Text>
+          ) : null} */}
+          {item?.khachhangdieuphois[0]?.khachhang ? (
+            <Text style={[styles.t_2]}>
+              Địa chỉ:{' '}
+              <Text style={styles.txtB}>
+                {item?.khachhangdieuphois[0]?.khachhang?.dia_chi
+                  ? item?.khachhangdieuphois[0]?.khachhang?.dia_chi
+                  : item?.khachhangdieuphois[0]?.khachhang?.customer_kd
+                      ?.address}
+              </Text>
+            </Text>
+          ) : null}
 
           {item.xedieuphois.length ? (
             <>
@@ -302,8 +319,6 @@ class Bills extends Component {
         </Block>
         <TouchableOpacity
           onPress={() => {
-            //
-
             const {xoaDieuPhoi} = this.props;
             Alert.alert(
               'Chú ý',

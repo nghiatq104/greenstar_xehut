@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, {useEffect, useMemo} from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -6,18 +6,18 @@ import {
   Easing,
   StatusBar,
   StyleSheet,
-} from "react-native";
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import Block from "../components/Block";
-import images from "../constants/images";
-import { authActions } from "../state/authentication";
-import { colors } from "../theme";
-import * as NavigationService from "../utils/NavigationService";
-import { verticalScale } from "../utils/responsive";
+} from 'react-native';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import Block from '../components/Block';
+import images from '../constants/images';
+import {authActions} from '../state/authentication';
+import {colors} from '../theme';
+import * as NavigationService from '../utils/NavigationService';
+import {verticalScale} from '../utils/responsive';
 
-const { width, height } = Dimensions.get("window");
-function SplashScreen({ navigation, splashScreen }) {
+const {width, height} = Dimensions.get('window');
+function SplashScreen({navigation, splashScreen}) {
   const spinValue = useMemo(() => new Animated.Value(0));
 
   const handleWhenOpenApp = async () => {
@@ -30,32 +30,32 @@ function SplashScreen({ navigation, splashScreen }) {
       toValue: 1,
       speed: 10,
       easing: Easing.linear,
+      useNativeDriver: true,
     }).start(handleWhenOpenApp);
   }, []);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
+    outputRange: ['0deg', '360deg'],
   });
 
   return (
     <>
       <StatusBar backgroundColor="#05c46b" />
-      <Block flex={1} style={{ backgroundColor: "white" }}>
+      <Block flex={1} style={{backgroundColor: 'white'}}>
         <Block
           style={{
             ...styles.background,
-            position: "absolute",
+            position: 'absolute',
             left: 0,
             top: 0,
           }}
-          center
-        >
+          center>
           <Animated.Image
             source={images.logo}
             style={{
               ...styles.logo,
-              transform: [{ rotate: spin }],
+              transform: [{rotate: spin}],
             }}
           />
 
@@ -83,10 +83,7 @@ const mapDispatchToProps = (dispatch) =>
     {
       splashScreen: authActions.splashScreen,
     },
-    dispatch
+    dispatch,
   );
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(SplashScreen);
+export default connect(null, mapDispatchToProps)(SplashScreen);

@@ -18,11 +18,14 @@ import {connect} from 'react-redux';
 import Block from '../../components/Block';
 import Footer from '../../components/Footer';
 import {colors, styles as sharedStyles} from '../../theme';
+import {transformKhachHang} from '../../utils/transforms';
+import SMGPicker from '../../components/Picker/SMGGroupPicker';
 
 const {width, height} = Dimensions.get('window');
 const options = [
   {label: 'Ca sáng', value: '1'},
   {label: 'Ca chiều', value: '2'},
+  {label: 'Ca Tối', value: '3'},
 ];
 
 class DonHang extends Component {
@@ -72,7 +75,6 @@ class DonHang extends Component {
   componentDidMount() {
     const {navigation, form_data} = this.props;
     const {vat_tu, ca, xe} = form_data;
-
     const itemEditting = navigation.getParam('itemEditting');
 
     if (itemEditting) {
@@ -88,7 +90,8 @@ class DonHang extends Component {
         noi_xa,
         khuvuc,
       } = itemEditting;
-      const {data} = this.props.form_data.khach_hang[khuvuc.ten];
+      const {khach_hang} = this.props?.form_data || [];
+
       this.setState({
         editID: dieu_phoi_id,
         danh_sach_ca_lam_viec: ca.map((el) => ({
@@ -97,16 +100,14 @@ class DonHang extends Component {
           value: el.id,
         })),
         ngay_lam_viec: moment(ngay, 'YYYY-MM-DD').toDate(),
-        ca_lam_viec: ca_id == 1 ? options[0] : options[1],
+        ca_lam_viec:
+          ca_id == 1 ? options[0] : ca_id == 2 ? options[1] : options[2],
         gio_xuat_phat: xedieuphois?.length
           ? moment(xedieuphois[0].gio_xuat_phat, 'HH:mm:ss').toDate()
           : new Date(),
-        khu_vuc: {
-          label: khuvuc.ten,
-          value: khuvuc.ten,
-        },
-        khach_hangs: data.find(
-          (el) => el.id === khachhangdieuphois[0].khach_hang_id,
+        khu_vuc: {},
+        khach_hangs: khach_hang?.filter(
+          (el) => el?.id === khachhangdieuphois[0].khach_hang_id,
         ),
 
         danh_sach_xe:
@@ -205,7 +206,7 @@ class DonHang extends Component {
       navigation,
       form_data: {khach_hang, chat_thai, xe},
     } = this.props;
-
+    const dataKH = khach_hang?.filter((el) => el.khu_vuc != null);
     return (
       <Block
         style={{backgroundColor: colors.GRAY3, paddingHorizontal: 5}}
@@ -282,52 +283,34 @@ class DonHang extends Component {
               styles.cate,
               !da_chon_khach_hang && {borderRightColor: colors.ERROR},
             ]}>
-            <TxT marginB-10 style={styles.title}>
-              Chọn khu vực
-            </TxT>
-            <Picker
-              value={khu_vuc}
-              placeholder="Ấn để chọn"
-              enableModalBlur={false}
-              onChange={(khu_vuc) => {
-                this.setState({khu_vuc, khach_hangs: null});
-              }}
-              topBarProps={{title: 'Chọn khu vực'}}
-              style={{color: Colors.black}}
-              searchStyle={{
-                color: Colors.blue30,
-                placeholderTextColor: Colors.dark50,
-              }}
-              showSearch>
-              {_.map(
-                Object.keys(khach_hang).map((el) => ({
-                  label: el,
-                  value: el,
-                })),
-                (option) => (
-                  <Picker.Item key={option} value={option} />
-                ),
-              )}
-            </Picker>
-            <TxT style={[styles.title]}>Chọn khách hàng</TxT>
-            <Picker
+            <SMGPicker
               value={khach_hangs}
-              placeholder="Ấn để chọn"
-              enableModalBlur={false}
-              onChange={(khach_hangs) => this.setState({khach_hangs})}
-              topBarProps={{title: 'Chọn khách hàng'}}
-              style={{color: Colors.black}}
-              searchStyle={{
-                color: Colors.blue30,
-                placeholderTextColor: Colors.dark50,
+              onChange={(dsKhachHang) => {
+                this.setState((prev) => {
+                  const data = [];
+                  data.push(dsKhachHang);
+                  return {
+                    khach_hangs: data,
+                  };
+                });
               }}
-              showSearch>
-              {khu_vuc && khach_hang[khu_vuc.value]
-                ? _.map(khach_hang[khu_vuc.value].data, (option) => (
-                    <Picker.Item key={option} value={option} />
-                  ))
-                : null}
-            </Picker>
+              placeholder="Chọn khách hàng"
+              placeholderEdit="Thay đổi khách hàng"
+              data={Object.values(transformKhachHang(dataKH))}
+              mode={SMGPicker.mode.SINGLE}
+            />
+            {khach_hangs && khach_hangs?.length != 0 ? (
+              <TxT
+                style={[
+                  styles.title,
+                  {
+                    marginTop: 10,
+                  },
+                ]}>
+                {khach_hangs[0]?.dia_chi ||
+                  khach_hangs[0]?.customer_kd?.address}
+              </TxT>
+            ) : null}
           </Block>
 
           <Block
@@ -473,14 +456,6 @@ class DonHang extends Component {
 
   handleSubmit = () => {
     const {khach_hangs, danh_sach_xe, loai_hang_hoa, khu_vuc} = this.state;
-    if (!khu_vuc || khu_vuc.length === 0) {
-      this.setState({da_chon_khach_hang: false});
-      return showMessage({
-        message: 'Bạn chưa chọn khu vực',
-        type: 'danger',
-        icon: {icon: 'danger', position: 'left'},
-      });
-    }
 
     this.setState({da_chon_khach_hang: true});
     if (!khach_hangs || khach_hangs.length === 0) {

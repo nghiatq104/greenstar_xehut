@@ -1,16 +1,16 @@
-import moment from "moment";
-import { showMessage } from "react-native-flash-message";
-import { call, put, select, takeLatest } from "redux-saga/effects";
-import * as APIs from "../services";
-import { mainTypes, mainTypes as types } from "../state/main";
-import { sharedTypes } from "../state/shared";
-import * as NavigationService from "../utils/NavigationService";
-import { handleError } from "../utils/http";
+import moment from 'moment';
+import {showMessage} from 'react-native-flash-message';
+import {call, put, select, takeLatest} from 'redux-saga/effects';
+import * as APIs from '../services';
+import {mainTypes, mainTypes as types} from '../state/main';
+import {sharedTypes} from '../state/shared';
+import * as NavigationService from '../utils/NavigationService';
+import {handleError} from '../utils/http';
 
 //TAO DON HANG
 function* taoDonHangWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
     const {
       khach_hangs,
       danh_sach_xe,
@@ -26,17 +26,18 @@ function* taoDonHangWorker(action) {
     } = action.payload;
     const payload = {
       ca_id: +ca_lam_viec.value,
-      ngay: moment(ngay_lam_viec).format("YYYY-MM-DD"),
+      ngay: moment(ngay_lam_viec).format('YYYY-MM-DD'),
       xe_id: danh_sach_xe.id,
-      khu_vuc_id: khach_hangs.khu_vuc_id,
-      gio_xuat_phat: moment(gio_xuat_phat).format("HH:mm:ss"),
-      khach_hang_id: [khach_hangs.id],
+      khu_vuc_id: khach_hangs[0]?.khu_vuc_id,
+      area_id: khach_hangs[0]?.khu_vuc_id,
+      gio_xuat_phat: moment(gio_xuat_phat).format('HH:mm:ss'),
+      khach_hang_id: [khach_hangs[0]?.id],
       loai_hang_hoa,
       khoi_luong_du_kien: parseInt(kl_du_kien),
       noi_luu_chua,
       noi_xa,
       ghi_chu,
-      don_dieu_phoi_id,
+      don_dieu_phoi_id: don_dieu_phoi_id || '',
     };
 
     yield call(APIs.taoDonHang, payload);
@@ -47,23 +48,23 @@ function* taoDonHangWorker(action) {
       payload: res_2,
     });
     showMessage({
-      message: "Điều phối xe thành công",
-      type: "success",
-      icon: { icon: "success", position: "left" },
+      message: 'Điều phối xe thành công',
+      type: 'success',
+      icon: {icon: 'success', position: 'left'},
     });
-    NavigationService.navigate("DonHang");
+    NavigationService.navigate('DonHang');
   } catch (error) {
     if (!handleError(error)) {
-      console.log(error, { ...error });
+      console.log(error, {...error});
 
       showMessage({
-        message: "Điều phối ko thành công",
-        type: "danger",
-        icon: { icon: "danger", position: "left" },
+        message: 'Điều phối ko thành công',
+        type: 'danger',
+        icon: {icon: 'danger', position: 'left'},
       });
     }
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 
@@ -73,7 +74,7 @@ export function* taoDonHangWatcher() {
 //TAO DON HANG
 function* capNhatDieuPhoiWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
     const {
       khach_hangs,
       danh_sach_xe,
@@ -87,19 +88,21 @@ function* capNhatDieuPhoiWorker(action) {
       noi_xa,
       don_dieu_phoi_id,
     } = action.payload.details;
+
     const payload = {
       ca_id: +ca_lam_viec.value,
-      ngay: moment(ngay_lam_viec).format("YYYY-MM-DD"),
+      ngay: moment(ngay_lam_viec).format('YYYY-MM-DD'),
       xe_id: danh_sach_xe.id,
-      khu_vuc_id: khach_hangs.khu_vuc_id,
-      gio_xuat_phat: moment(gio_xuat_phat).format("HH:mm:ss"),
-      khach_hang_id: [khach_hangs.id],
+      khu_vuc_id: khach_hangs[0]?.khu_vuc_id,
+      area_id: khach_hangs[0]?.khu_vuc_id,
+      gio_xuat_phat: moment(gio_xuat_phat).format('HH:mm:ss'),
+      khach_hang_id: [khach_hangs[0]?.id],
       loai_hang_hoa,
       khoi_luong_du_kien: parseInt(kl_du_kien),
       noi_luu_chua,
       noi_xa,
       ghi_chu,
-      don_dieu_phoi_id,
+      don_dieu_phoi_id: don_dieu_phoi_id || '',
     };
 
     yield call(APIs.suaLichXe, {
@@ -113,23 +116,23 @@ function* capNhatDieuPhoiWorker(action) {
       payload: res_2,
     });
     showMessage({
-      message: "Cập nhật điều phối xe thành công",
-      type: "success",
-      icon: { icon: "success", position: "left" },
+      message: 'Cập nhật điều phối xe thành công',
+      type: 'success',
+      icon: {icon: 'success', position: 'left'},
     });
-    NavigationService.navigate("DonHang");
+    NavigationService.navigate('DonHang');
   } catch (error) {
     if (!handleError(error)) {
-      console.log(error, { ...error });
+      console.log(error, {...error});
 
       showMessage({
-        message: "Điều phối ko thành công",
-        type: "danger",
-        icon: { icon: "danger", position: "left" },
+        message: 'Điều phối ko thành công',
+        type: 'danger',
+        icon: {icon: 'danger', position: 'left'},
       });
     }
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 
@@ -139,7 +142,7 @@ export function* capNhatDieuPhoiWatcher() {
 //TAO DON HANG
 function* xoaDieuPhoiWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
 
     yield call(APIs.xoaLichXe, action.payload);
     const ngay_thuc_hien = yield select((state) => state.main.ngay_hien_tai);
@@ -149,22 +152,22 @@ function* xoaDieuPhoiWorker(action) {
       payload: res_2,
     });
     showMessage({
-      message: "Xoá điều phối xe thành công",
-      type: "success",
-      icon: { icon: "success", position: "left" },
+      message: 'Xoá điều phối xe thành công',
+      type: 'success',
+      icon: {icon: 'success', position: 'left'},
     });
   } catch (error) {
     if (!handleError(error)) {
-      console.log(error, { ...error });
+      console.log(error, {...error});
 
       showMessage({
-        message: "Xoá điều phối ko thành công",
-        type: "danger",
-        icon: { icon: "danger", position: "left" },
+        message: 'Xoá điều phối ko thành công',
+        type: 'danger',
+        icon: {icon: 'danger', position: 'left'},
       });
     }
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 
@@ -174,7 +177,7 @@ export function* xoaDieuPhoiWatcher() {
 
 function* layDSDonHangWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
     const res = yield call(APIs.layDSDonHang, action.payload);
     yield put({
       type: mainTypes.LAY_DANH_SACH_DON_HANG_THANH_CONG,
@@ -184,7 +187,7 @@ function* layDSDonHangWorker(action) {
     if (!handleError(error)) {
     }
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 
@@ -194,7 +197,7 @@ export function* layDSDonHangWatcher() {
 
 function* layDSThongBaoWorker(action) {
   try {
-    yield put({ type: sharedTypes.PENDING });
+    yield put({type: sharedTypes.PENDING});
     const res = yield call(APIs.layDSThongBao, action.payload);
     yield put({
       type: mainTypes.LAY_DANH_SACH_THONG_BAO_THANH_CONG,
@@ -204,7 +207,7 @@ function* layDSThongBaoWorker(action) {
     if (!handleError(error)) {
     }
   } finally {
-    yield put({ type: sharedTypes.DONE });
+    yield put({type: sharedTypes.DONE});
   }
 }
 
